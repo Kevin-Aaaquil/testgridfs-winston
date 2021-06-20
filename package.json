@@ -4,7 +4,7 @@
   "description": "Test module to learn GridFS MongoDB",
   "main": "index.js",
   "scripts": {
-    "test": "nodemon index.js",
+    "test": "nodemon test.js",
     "start": "node src/index.js",
     "dev": "nodemon src/index.js",
     "clean": "rm -rf package-lock.json  node_modules && npm install"

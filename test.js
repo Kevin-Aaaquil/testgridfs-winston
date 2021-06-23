@@ -25,6 +25,21 @@ app
 .set('view-engine','ejs')
 .use(methodOverride('_method'))
 
+const connect = mongoose.createConnection(process.env.MONGO_URI,{
+    useFindAndModify:true,
+    useNewUrlParser: true,
+    useUnifiedTopology:true,
+    ignoreUndefined:true,
+})
+
+let gfs;
+
+connect.then(()=>{
+    console.log(chalk.magenta('connected to database'))
+    gfs = new mongoose.mongo.GridFSBucket(connect.db,{
+        bucketName:'uploads'
+    });
+}).catch(err => console.log(err));
 
 // creating storage engine
 
@@ -36,54 +51,35 @@ const storage = new GridFsStorage({
     file: (req,file)=>{
         return new Promise((resolve,reject)=>{
             //encrypt filename before storing it
-            crypto.randomBytes(16,(err,buf)=>{
-                if(err) return reject(err);
-
-                const filename = buf.toString('hex') + path.extname(file.originalname);
-                const fileInfo = {
-                    filename:filename,
-                    bucketName : 'uploads'
-                };
-                resolve(fileInfo);
-            });
+            const filename = file.originalname;
+            const fileInfo = {
+                filename:filename,
+                bucketName : 'uploads',
+                aliases : 'eshanid'
+            };
+            resolve(fileInfo);
         });
     }
 });
 
 const upload = multer({storage});
 
-const connect = mongoose.createConnection(process.env.MONGO_URI,{
-    useFindAndModify:true,
-    useNewUrlParser: true,
-    useUnifiedTopology:true
-}).catch(err=>console.log(err))
 
 let randomSchema = new mongoose.Schema({},{strict:false});
 let Image = mongoose.model('Image',randomSchema);
 
-let gfs;
-
-connect.then('open',()=>{
-    gfs = new mongoose.mongo.GridFSBucket(connect.db,{
-        bucketName:'uploads'
-    });
-}).catch(err => console.log(err));
 
 
 app.get('/',(req,res)=>{
     res.render('index.ejs');
 });
 
-app.get('/upload',(req,res)=>{
-    res.redirect('/');
-})
 
 app.post('/upload',upload.single('file'),(req,res,next)=>{
     console.log(req.body);
     // checking for exixting files
     Image.findOne({caption: req.body.caption})
     .then((image)=>{
-        console.log(image);
         if(image){
             return res.status(200).json({
                 success: false,
@@ -99,10 +95,11 @@ app.post('/upload',upload.single('file'),(req,res,next)=>{
             fileId : req.file.id,
         });
 
-        newImage.save().then((image)=>{
+        newImage.save().then(()=>{
+            console.log(chalk.blue("File added"))
             res.status(200).json({
                 success : true,
-                image,
+                message : "File added"
             });
         }).catch(err => res.status(500).json(err));
 
@@ -111,7 +108,7 @@ app.post('/upload',upload.single('file'),(req,res,next)=>{
 
 
 
-port = process.env.PORT || 3000;
+port = process.env.PORT || 5000;
 host = '0.0.0.0'
 app.listen(port,host,()=>{
     console.log(chalk.magenta(`listening on http://localhost:${port}`));

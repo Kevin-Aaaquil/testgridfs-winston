@@ -5,7 +5,6 @@ const app = express();
 const cors = require('cors')
 require('dotenv').config();
 const logger = require('./logs/logger.js');
-
 // starting from here
 
 const methodOverride = require('method-override')
@@ -16,6 +15,7 @@ const path = require('path');
 const Grid = require('gridfs-stream');
 const mongoose  = require('mongoose');
 const {customAlphabet} = require('nanoid');
+const { ReadStream } = require('fs');
 
 const nanoid = customAlphabet('ABCDEFGIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890',10);
 
@@ -110,11 +110,50 @@ app.post('/file',(req,res)=>{
         if(!file || file.length === 0){
             return res.status(404).json({
                 success : false,
-                err : "No file exists"
+                message : "No file exists"
             });
         }
        return res.json(file)
         
+        
+    })
+});
+
+app.delete('/remove',(req,res)=>{
+    gfs.files.findOne({aliases : req.body.aliases},(err,file)=>{
+        if(!file || file.length === 0){
+            return res.status(404).json({
+                success: false,
+                message : "No file exists"
+            })
+        }
+        gfs.files.remove({aliases : req.body.aliases});
+        res.redirect('/');
+    })
+})
+
+// copy of above
+// to display image
+app.post('/view',(req,res)=>{
+    gfs.files.findOne({aliases : req.body.aliases},(err,file)=>{
+        if(!file || file.length === 0){
+            return res.status(404).json({
+                success : false,
+                err : "No file exists"
+            });
+        }
+       //return res.json(file)
+        if(file.contentType === 'image/jpeg' || file.contentType === 'img/png' || file.contentType === 'application/pdf'){
+            // read output to browser
+            const readstream = gfs.createReadStream(file.filename);
+            readstream.pipe(res);
+        }
+        else{
+            res.status(404).json({
+                success : false,
+                message : "Not a supported filetype"
+            })
+        }
         
     })
 });

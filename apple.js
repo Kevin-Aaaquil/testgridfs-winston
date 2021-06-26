@@ -15,6 +15,9 @@ const crypto = require('crypto');
 const path = require('path');
 const Grid = require('gridfs-stream');
 const mongoose  = require('mongoose');
+const {customAlphabet} = require('nanoid');
+
+const nanoid = customAlphabet('ABCDEFGIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890',10);
 
 
 // middleware
@@ -24,6 +27,10 @@ app
 .use(express.urlencoded({extended:true}))
 .set('view-engine','ejs')
 .use(methodOverride('_method'))
+
+
+
+
 
 
 const connect = mongoose.createConnection(process.env.MONGO_URI,{
@@ -37,9 +44,11 @@ let gfs;
 
 connect.then(()=>{
     console.log(chalk.magenta('connected to database'))
-    gfs = new mongoose.mongo.GridFSBucket(connect.db,{
-        bucketName:'uploads'
-    });
+    // gfs = new mongoose.mongo.GridFSBucket(connect.db,{
+    //     bucketName:'uploads'
+    // });
+    gfs = Grid(connect.db,mongoose.mongo);
+    gfs.collection('uploads')
 }).catch(err => console.log(err));
 
 // creating storage engine
@@ -56,7 +65,7 @@ const storage = new GridFsStorage({
             const fileInfo = {
                 filename:filename,
                 bucketName : 'uploads',
-                aliases : 'eshanid'
+                aliases : nanoid(),
             };
             resolve(fileInfo);
         });
@@ -70,46 +79,45 @@ let randomSchema = new mongoose.Schema({},{strict:false});
 let Image = mongoose.model('Image',randomSchema);
 
 
-
+// home page
 app.get('/',(req,res)=>{
     res.render('index.ejs');
 });
 
-
+// upload single file
 app.post('/upload',upload.single('file'),(req,res,next)=>{
-    // console.log(req.body);
-    // // checking for exixting files
-    // Image.findOne({caption: req.body.caption})
-    // .then((image)=>{
-    //     if(image){
-    //         return res.status(200).json({
-    //             success: false,
-    //             message:'Image already exists'
-    //         });
-    //     }
-
-    //     // uploading
-
-    //     let newImage = new Image({
-    //         caption:req.body.caption,
-    //         filename: req.file.filename,
-    //         fileId : req.file.id,
-    //     });
-
-    //     newImage.save().then(()=>{
-    //         console.log(chalk.blue("File added"))
-    //         res.status(200).json({
-    //             success : true,
-    //             message : "File added"
-    //         });
-    //     }).catch(err => res.status(500).json(err));
-
-    // }).catch(err => res.status(500).json(err));
-   // res.json({"mssg":"uploaded"});
    res.redirect('/')
 })
 
+// to view all files stored
+app.post('/files',(req,res)=>{
+    gfs.files.find().toArray((err,files)=>{
+        // checks if files exists
+        if(!files || files.length === 0){
+            return res.status(404).json({
+                success :false,
+                "message":"No files exist"
+            }) 
+        }
 
+        return res.json(files);
+    });
+});
+
+// to view particular file
+app.post('/file',(req,res)=>{
+    gfs.files.findOne({aliases : req.body.aliases},(err,file)=>{
+        if(!file || file.length === 0){
+            return res.status(404).json({
+                success : false,
+                err : "No file exists"
+            });
+        }
+       return res.json(file)
+        
+        
+    })
+});
 
 
 

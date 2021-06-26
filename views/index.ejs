@@ -15,10 +15,36 @@
                 <h1 class="text-center display-4 my-4">MongoDB GridFS Test</h1>
                 <form action="/upload" method="post" enctype="multipart/form-data">
                 <div class="custom-file mb-3">
-                    <input type="file" name="file" id="file" class="custom-file-input">
+                    <input type="file" name="file" multiple="multiple" id="file" class="custom-file-input">
                     <label for="file" class="custom-file-label">Choose File</label>
                 </div>
-                <input type="submit" value="Submit" class="btn btn-primary btn-block">
+                <input type="submit" value="Submit" class="btn  btn-primary btn-block">
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <br>
+
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6 m-auto">
+                <form action="/files" method="post">
+                <input type="submit" value="View Files" class="btn btn-primary green btn-block">
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <br>
+
+
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6 m-auto">
+                <form action="/file" method="post">
+                <input type="text" name="aliases" id="aliases">
+                <button type="submit" class = "btn btn-primary">Search</button>
                 </form>
             </div>
         </div>

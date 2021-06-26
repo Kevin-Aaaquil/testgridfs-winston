@@ -4,6 +4,8 @@
   "description": "Test module to learn GridFS MongoDB",
   "main": "index.js",
   "scripts": {
+    "log" : "nodemon log.js",
+    "app": "nodemon apple.js",
     "test": "nodemon test.js",
     "start": "node src/index.js",
     "dev": "nodemon src/index.js",
@@ -28,6 +30,7 @@
     "multer": "^1.4.2",
     "multer-gridfs-storage": "^4.2.0",
     "nanoid": "^3.1.23",
-    "path": "^0.12.7"
+    "path": "^0.12.7",
+    "winston": "^3.3.3"
   }
 }

@@ -4,7 +4,7 @@ const app = express();
 
 const cors = require('cors')
 require('dotenv').config();
-const logger = require('./logs/logger.js');
+const logger = require('./logs/logger');
 // starting from here
 
 const methodOverride = require('method-override')

@@ -4,7 +4,7 @@ const app = express();
 
 const cors = require('cors')
 require('dotenv').config();
-const chalk = require('chalk');
+const logger = require('./logs/logger.js');
 
 // starting from here
 
@@ -43,13 +43,13 @@ const connect = mongoose.createConnection(process.env.MONGO_URI,{
 let gfs;
 
 connect.then(()=>{
-    console.log(chalk.magenta('connected to database'))
+    logger.info('connected to database')
     // gfs = new mongoose.mongo.GridFSBucket(connect.db,{
     //     bucketName:'uploads'
     // });
     gfs = Grid(connect.db,mongoose.mongo);
     gfs.collection('uploads')
-}).catch(err => console.log(err));
+}).catch(err => logger.error(new Error (err.message)));
 
 // creating storage engine
 
@@ -128,5 +128,5 @@ app.use((req, res)=>{
 port = process.env.PORT || 3000;
 host = '0.0.0.0'
 app.listen(port,host,()=>{
-    console.log(chalk.magenta(`listening on http://localhost:${port}`));
+    logger.info(`listening on http://localhost:${port}`);
 })
